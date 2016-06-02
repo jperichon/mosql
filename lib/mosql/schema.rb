@@ -195,8 +195,6 @@ module MoSQL
         else
           Sequel::SQL::Blob.new(v.to_s)
         end
-      when BSON::DBRef
-        v.object_id.to_s
       else
         v
       end
