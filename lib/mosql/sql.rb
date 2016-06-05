@@ -35,7 +35,13 @@ module MoSQL
     end
 
     def upsert_ns(ns, obj)
-      h = transform_one_ns(ns, obj)
+      begin
+        h = transform_one_ns(ns, obj)
+      rescue BSON::InvalidDocument
+        log.fatal { "BSON::InvalidDocument: ID=#{obj["_id"]}" }
+        return
+      end
+
       upsert!(table_for_ns(ns), @schema.primary_sql_key_for_ns(ns), h)
     end
 
