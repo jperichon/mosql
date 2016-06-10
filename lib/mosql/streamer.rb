@@ -144,7 +144,12 @@ module MoSQL
       collection.find(filter, :batch_size => BATCH) do |cursor|
         with_retries do
           cursor.each do |obj|
-            batch << @schema.transform(ns, obj)
+            begin
+              batch << @schema.transform(ns, obj)
+            rescue BSON::InvalidDocument
+              log.fatal { "BSON::InvalidDocument: ID=#{obj["_id"]}" }
+            end
+
             count += 1
 
             if batch.length >= BATCH
