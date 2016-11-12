@@ -69,6 +69,8 @@ module MoSQL
         rescue Sequel::DatabaseError => e
           raise e unless self.class.duplicate_key_error?(e)
           log.info("RACE during upsert: Upserting #{item} into #{table}: #{e}")
+        rescue PG::DataException => e
+          log.fatal("Exception Upserting #{item} into #{table}: #{e}")
         end
       elsif rows > 1
         log.warn("Huh? Updated #{rows} > 1 rows: upsert(#{table}, #{item})")

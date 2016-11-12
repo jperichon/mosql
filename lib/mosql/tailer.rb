@@ -15,7 +15,8 @@ module MoSQL
         # exists.
         begin
           db.add_column(tablename, :position, 'BYTEA')
-        rescue Sequel::DatabaseError => e
+
+        rescue PG::DataException, Sequel::DatabaseError => e
           raise unless MoSQL::SQLAdapter.duplicate_column_error?(e)
         end
       end
@@ -32,8 +33,8 @@ module MoSQL
     def read_state
       row = @table.where(:service => @service).first
       return nil unless row
-      # Again, try to do seamless upgrades - 
-      # If latest operation before or at timestamp if no position 
+      # Again, try to do seamless upgrades -
+      # If latest operation before or at timestamp if no position
       # exists, use timestamp in database to guess what it could be.
       result = {}
       result['time'] = Time.at(row.fetch(:timestamp))
@@ -57,7 +58,7 @@ module MoSQL
       unless @did_insert
         begin
           @table.insert(data)
-        rescue Sequel::DatabaseError => e
+        rescue PG::DataException, Sequel::DatabaseError => e
           raise unless MoSQL::SQLAdapter.duplicate_key_error?(e)
         end
         @did_insert = true

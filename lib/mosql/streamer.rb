@@ -37,6 +37,8 @@ module MoSQL
     def unsafe_handle_exceptions(ns, obj)
       begin
         yield
+      rescue PG::DataException => e
+        log.error("Error processing #{obj.inspect} for #{ns}. #{e}")
       rescue Sequel::DatabaseError => e
         wrapped = e.wrapped_exception
         if wrapped.result && options[:unsafe]
@@ -51,7 +53,7 @@ module MoSQL
     def bulk_upsert(table, ns, items)
       begin
         @schema.copy_data(table.db, ns, items)
-      rescue Sequel::DatabaseError => e
+      rescue PG::DataException, Sequel::DatabaseError => e
         log.debug("Bulk insert error (#{e}), attempting invidual upserts...")
         cols = @schema.all_columns(@schema.find_ns(ns))
         items.each do |it|
